@@ -19,3 +19,5 @@ php-fpm &
 
 echo "==> Starting Nginx..."
 nginx -g "daemon off;"
+php artisan migrate --force
+php artisan db:seed --class=AdminUserSeeder
