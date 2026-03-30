@@ -14,10 +14,11 @@ php artisan view:cache
 echo "==> Running migrations..."
 php artisan migrate --force
 
+echo "==> Seeding Admin User..."
+php artisan db:seed --class=AdminUserSeeder --force
+
 echo "==> Starting PHP-FPM..."
 php-fpm &
 
 echo "==> Starting Nginx..."
 nginx -g "daemon off;"
-php artisan migrate --force
-php artisan db:seed --class=AdminUserSeeder
