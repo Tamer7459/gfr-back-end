@@ -19,7 +19,6 @@ class AdminUserSeeder extends Seeder
         'email' => 'admin@gmail.com',
         'password' => Hash::make('password123'),
         'role' => 'admin', // مهم إذا عندك نظام roles
-        'is_admin' => true,
     ]);
     }
 }
