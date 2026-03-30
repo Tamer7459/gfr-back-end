@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-# أنشئ الـ .env من متغيرات Render
 cat > /var/www/html/.env << EOF
 APP_NAME=GFR
 APP_ENV=production
@@ -27,6 +26,8 @@ CACHE_DRIVER=file
 QUEUE_CONNECTION=sync
 EOF
 
+php /var/www/html/artisan config:clear
+php /var/www/html/artisan cache:clear
 php /var/www/html/artisan config:cache
 php /var/www/html/artisan route:cache
 php /var/www/html/artisan migrate --force
