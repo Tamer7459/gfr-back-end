@@ -1,20 +1,31 @@
-FROM richarvey/nginx-php-fpm:3.1.6
+FROM php:8.2-fpm
 
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    nginx libpq-dev zip unzip curl git \
+    && docker-php-ext-install pdo pdo_pgsql \
+    && apt-get clean
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www
+
+# Copy project files
 COPY . .
 
-ENV SKIP_COMPOSER 1
-ENV WEBROOT /var/www/html/public
-ENV PHP_ERRORS_STDERR 1
-ENV RUN_SCRIPTS 1
-ENV REAL_IP_HEADER 1
-ENV APP_ENV production
-ENV APP_DEBUG false
-ENV LOG_CHANNEL stderr
-ENV COMPOSER_ALLOW_SUPERUSER 1
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader
 
-# مهم: خلي السكريبت executable
-RUN chmod +x /var/www/html/scripts/00-startup.sh
+# Permissions
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+
+# Copy config files
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+EXPOSE 8080
 
 CMD ["/start.sh"]
-
-
