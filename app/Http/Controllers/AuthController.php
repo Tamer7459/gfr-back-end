@@ -21,11 +21,14 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
+        // في register() عدّل:
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'user',
+            'role' => in_array($request->role, ['researcher', 'professor', 'reviewer'])
+                ? $request->role
+                : 'researcher',
         ]);
 
         $token = $user->createToken('gfr_token')->plainTextToken;

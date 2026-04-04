@@ -66,12 +66,12 @@ class AdminController extends Controller
     public function stats(): JsonResponse
     {
         return response()->json([
-            'total_users'    => User::count(),
-            'total_posts'    => Post::count(),
-            'total_admins'   => User::where('role', 'admin')->count(),
-            'latest_users'   => User::latest()->take(5)->get(),
-            'latest_posts'   => Post::with('user:id,name')
-                                    ->latest()->take(5)->get(),
+            'total_users' => User::count(),
+            'total_posts' => Post::count(),
+            'total_admins' => User::where('role', 'admin')->count(),
+            'latest_users' => User::latest()->take(5)->get(),
+            'latest_posts' => Post::with('user:id,name')
+                ->latest()->take(5)->get(),
         ]);
     }
 
@@ -85,13 +85,17 @@ class AdminController extends Controller
             ], 422);
         }
 
+        $validated = request()->validate([
+            'role' => 'required|string|in:admin,user,researcher,professor,reviewer',
+        ]);
+
         $user->update([
-            'role' => $user->role === 'admin' ? 'user' : 'admin'
+            'role' => $validated['role']
         ]);
 
         return response()->json([
             'message' => 'تم تغيير الدور بنجاح',
-            'user'    => $user->fresh(),
+            'user' => $user->fresh(),
         ]);
     }
 }

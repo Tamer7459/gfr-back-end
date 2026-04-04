@@ -88,6 +88,16 @@ public function organizedConferences()
     return $this->hasMany(Conference::class, 'organizer_id');
 }
 
-
+// أضف هذه الدالة
+public function getRoleLabelAttribute(): string
+{
+    return match($this->role) {
+        'admin'      => 'مسؤول',
+        'researcher' => 'باحث',
+        'professor'  => 'أستاذ',
+        'reviewer'   => 'مراجع',
+        default      => 'مستخدم',
+    };
+}
 
 }

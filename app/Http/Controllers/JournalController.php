@@ -15,10 +15,10 @@ class JournalController extends Controller
     public function index(): JsonResponse
     {
         $journals = Journal::with([
-                'author:id,name,specialty',
-                'editor:id,name',
-                'reviews',
-            ])
+            'author:id,name,specialty',
+            'editor:id,name',
+            'reviews',
+        ])
             ->latest()
             ->paginate(10);
 
@@ -30,15 +30,15 @@ class JournalController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
-            'title'    => 'required|string|max:255',
+            'title' => 'required|string|max:255',
             'abstract' => 'required|string|min:50',
         ]);
 
         $journal = Journal::create([
-            'user_id'  => auth()->id(),
-            'title'    => $request->title,
+            'user_id' => auth()->id(),
+            'title' => $request->title,
             'abstract' => $request->abstract,
-            'status'   => 'pending',
+            'status' => 'pending',
         ]);
 
         $journal->load('author:id,name,specialty');
@@ -87,20 +87,43 @@ class JournalController extends Controller
     public function assignReviewers(Request $request, Journal $journal): JsonResponse
     {
         $request->validate([
-            'reviewer_ids'   => 'required|array|min:1|max:2',
+            'reviewer_ids' => 'required|array|min:1|max:2',
             'reviewer_ids.*' => 'exists:users,id',
         ]);
 
+        $reviewerIds = User::query()
+            ->whereIn('id', $request->reviewer_ids)
+            ->where('role', 'reviewer')
+            ->pluck('id')
+            ->all();
+
+        if (count($reviewerIds) !== count(array_unique($request->reviewer_ids))) {
+            return response()->json([
+                'message' => 'يمكن تعيين مستخدمين بدور مراجع فقط'
+            ], 422);
+        }
+
         // منع تعيين الباحث مراجعاً لورقته
-        if (in_array($journal->user_id, $request->reviewer_ids)) {
+        if (in_array($journal->user_id, $reviewerIds)) {
             return response()->json([
                 'message' => 'لا يمكن تعيين الباحث مراجعاً لورقته'
             ], 422);
         }
 
-        foreach ($request->reviewer_ids as $reviewerId) {
+        $alreadyAssigned = Review::query()
+            ->where('journal_id', $journal->id)
+            ->whereIn('reviewer_id', $reviewerIds)
+            ->exists();
+
+        if ($alreadyAssigned) {
+            return response()->json([
+                'message' => 'بعض المراجعين المحددين مُعينون مسبقاً لهذه الورقة'
+            ], 422);
+        }
+
+        foreach ($reviewerIds as $reviewerId) {
             Review::firstOrCreate([
-                'journal_id'  => $journal->id,
+                'journal_id' => $journal->id,
                 'reviewer_id' => $reviewerId,
             ], [
                 'decision' => 'pending',
@@ -108,7 +131,7 @@ class JournalController extends Controller
         }
 
         $journal->update([
-            'status'    => 'under_review',
+            'status' => 'under_review',
             'editor_id' => auth()->id(),
         ]);
 
@@ -127,7 +150,7 @@ class JournalController extends Controller
             'decision' => 'required|in:accept,reject,revision',
         ]);
 
-        $review = Review::where('journal_id',  $journal->id)
+        $review = Review::where('journal_id', $journal->id)
             ->where('reviewer_id', auth()->id())
             ->first();
 
@@ -147,7 +170,7 @@ class JournalController extends Controller
 
         return response()->json([
             'message' => 'تم تقديم مراجعتك بنجاح',
-            'review'  => $review,
+            'review' => $review,
         ]);
     }
 
@@ -155,7 +178,7 @@ class JournalController extends Controller
 
     private function updateJournalStatus(Journal $journal): void
     {
-        $reviews   = $journal->reviews;
+        $reviews = $journal->reviews;
         $completed = $reviews->whereNotIn('decision', ['pending']);
 
         if ($completed->count() === $reviews->count() && $reviews->count() > 0) {
