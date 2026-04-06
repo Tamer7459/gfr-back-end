@@ -1,23 +1,35 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        // تغيير نوع العمود
-        DB::statement("ALTER TABLE users MODIFY COLUMN role 
-            ENUM('user','admin','researcher','professor','reviewer') 
-            DEFAULT 'researcher'");
+        DB::statement("DO \$\$ BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns 
+                WHERE table_name='users' AND column_name='role'
+            ) THEN
+                ALTER TABLE users DROP COLUMN role;
+            END IF;
+        END \$\$");
+
+        DB::statement("ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'researcher'");
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE users MODIFY COLUMN role 
-            ENUM('user','admin') DEFAULT 'user'");
+        DB::statement("DO \$\$ BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns 
+                WHERE table_name='users' AND column_name='role'
+            ) THEN
+                ALTER TABLE users DROP COLUMN role;
+            END IF;
+        END \$\$");
+
+        DB::statement("ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user'");
     }
 };
