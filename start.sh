@@ -29,14 +29,22 @@ php artisan view:cache || echo "Warning: view:cache failed, continuing..."
 echo "==> Running migrations (with retry)..."
 MIGRATION_SUCCESS=false
 for i in {1..30}; do
-    if php artisan migrate --force; then
-        echo "Migrations completed successfully"
-        MIGRATION_SUCCESS=true
-        break
+    if [ $i -eq 1 ]; then
+        echo "First attempt: running migrate:fresh to ensure clean state..."
+        if php artisan migrate:fresh --force; then
+            echo "Migrations completed successfully"
+            MIGRATION_SUCCESS=true
+            break
+        fi
     else
-        echo "Migration attempt $i failed, retrying in 2 seconds..."
-        sleep 2
+        if php artisan migrate --force; then
+            echo "Migrations completed successfully"
+            MIGRATION_SUCCESS=true
+            break
+        fi
     fi
+    echo "Migration attempt $i failed, retrying in 2 seconds..."
+    sleep 2
 done
 
 if [ "$MIGRATION_SUCCESS" = false ]; then
