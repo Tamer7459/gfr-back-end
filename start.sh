@@ -31,16 +31,20 @@ MIGRATION_SUCCESS=false
 for i in {1..30}; do
     if [ $i -eq 1 ]; then
         echo "First attempt: running migrate:fresh to ensure clean state..."
-        if php artisan migrate:fresh --force; then
+        if php artisan migrate:fresh --force -v; then
             echo "Migrations completed successfully"
             MIGRATION_SUCCESS=true
             break
+        else
+            echo "=== MIGRATION ERROR OUTPUT ABOVE ==="
         fi
     else
-        if php artisan migrate --force; then
+        if php artisan migrate --force -v; then
             echo "Migrations completed successfully"
             MIGRATION_SUCCESS=true
             break
+        else
+            echo "=== MIGRATION ERROR OUTPUT ABOVE ==="
         fi
     fi
     echo "Migration attempt $i failed, retrying in 2 seconds..."
