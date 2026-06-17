@@ -27,9 +27,11 @@ echo "==> Caching views (non-blocking)..."
 php artisan view:cache || echo "Warning: view:cache failed, continuing..."
 
 echo "==> Running migrations (with retry)..."
+MIGRATION_SUCCESS=false
 for i in {1..30}; do
     if php artisan migrate --force; then
         echo "Migrations completed successfully"
+        MIGRATION_SUCCESS=true
         break
     else
         echo "Migration attempt $i failed, retrying in 2 seconds..."
@@ -37,16 +39,27 @@ for i in {1..30}; do
     fi
 done
 
+if [ "$MIGRATION_SUCCESS" = false ]; then
+    echo "ERROR: Migrations failed after 30 attempts. Exiting."
+    exit 1
+fi
+
 echo "==> Seeding Admin User..."
+SEED_SUCCESS=false
 for i in {1..5}; do
     if php artisan db:seed --class=AdminUserSeeder --force; then
         echo "Seeding completed successfully"
+        SEED_SUCCESS=true
         break
     else
         echo "Seeding attempt $i failed, retrying in 2 seconds..."
         sleep 2
     fi
 done
+
+if [ "$SEED_SUCCESS" = false ]; then
+    echo "WARNING: Seeding failed after 5 attempts. Continuing anyway..."
+fi
 
 echo "==> Starting PHP-FPM..."
 php-fpm &
