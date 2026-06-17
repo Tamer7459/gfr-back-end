@@ -14,6 +14,9 @@ WORKDIR /var/www
 # Copy project files
 COPY . .
 
+# Verify resources/views directory exists
+RUN ls -la /var/www/resources/views || (echo "ERROR: resources/views not found!" && exit 1)
+
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
