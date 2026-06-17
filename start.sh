@@ -26,11 +26,27 @@ php artisan route:cache
 echo "==> Caching views (non-blocking)..."
 php artisan view:cache || echo "Warning: view:cache failed, continuing..."
 
-echo "==> Running migrations..."
-php artisan migrate --force
+echo "==> Running migrations (with retry)..."
+for i in {1..30}; do
+    if php artisan migrate --force; then
+        echo "Migrations completed successfully"
+        break
+    else
+        echo "Migration attempt $i failed, retrying in 2 seconds..."
+        sleep 2
+    fi
+done
 
 echo "==> Seeding Admin User..."
-php artisan db:seed --class=AdminUserSeeder --force
+for i in {1..5}; do
+    if php artisan db:seed --class=AdminUserSeeder --force; then
+        echo "Seeding completed successfully"
+        break
+    else
+        echo "Seeding attempt $i failed, retrying in 2 seconds..."
+        sleep 2
+    fi
+done
 
 echo "==> Starting PHP-FPM..."
 php-fpm &

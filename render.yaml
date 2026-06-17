@@ -26,6 +26,8 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
+      - key: DB_SSLMODE
+        value: "require"
       - key: FRONTEND_URL
         value: https://gfr-front-end.vercel.app
       - key: CORS_ALLOWED_ORIGINS
