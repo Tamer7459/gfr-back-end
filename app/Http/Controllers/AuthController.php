@@ -50,9 +50,9 @@ class AuthController extends Controller
         ]);
 
         if (!Auth::attempt($request->only('email', 'password'))) {
-            throw ValidationException::withMessages([
-                'email' => ['البريد الإلكتروني أو كلمة المرور غير صحيحة'],
-            ]);
+            return response()->json([
+                'message' => 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+            ], 422);
         }
 
         /** @var User $user */

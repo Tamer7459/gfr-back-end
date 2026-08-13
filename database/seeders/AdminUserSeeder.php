@@ -2,25 +2,52 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 
 class AdminUserSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * إنشاء حسابات تجريبية بجميع الأدوار.
      */
     public function run(): void
     {
-    User::updateOrCreate(
-        ['email' => 'admin@gmail.com'], // شرط البحث
-        [
-            'name' => 'Admin',
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-        ]
-    );
+        $users = [
+            [
+                'name'     => 'Admin',
+                'email'    => 'admin@gmail.com',
+                'password' => 'password123',
+                'role'     => 'admin',
+            ],
+            [
+                'name'     => 'Researcher',
+                'email'    => 'researcher@gmail.com',
+                'password' => 'password123',
+                'role'     => 'researcher',
+            ],
+            [
+                'name'     => 'Professor',
+                'email'    => 'professor@gmail.com',
+                'password' => 'password123',
+                'role'     => 'professor',
+            ],
+            [
+                'name'     => 'Reviewer',
+                'email'    => 'reviewer@gmail.com',
+                'password' => 'password123',
+                'role'     => 'reviewer',
+            ],
+        ];
+
+        foreach ($users as $user) {
+            User::updateOrCreate(
+                ['email' => $user['email']],
+                [
+                    'name'     => $user['name'],
+                    'password' => $user['password'],
+                    'role'     => $user['role'],
+                ]
+            );
+        }
     }
 }

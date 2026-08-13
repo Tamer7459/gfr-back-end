@@ -29,6 +29,9 @@ php artisan view:cache || echo "Warning: view:cache failed, continuing..."
 echo "==> Running migrations (with retry)..."
 MIGRATION_SUCCESS=false
 for i in {1..30}; do
+    php artisan db:wipe --force 2>/dev/null || true
+    PGPASSWORD="${DB_PASSWORD}" psql -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USERNAME}" -d "${DB_DATABASE}" -c "ROLLBACK" 2>/dev/null || true
+
     if [ $i -eq 1 ]; then
         echo "First attempt: running migrate:fresh to ensure clean state..."
         if php artisan migrate:fresh --force -v; then
